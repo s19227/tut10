@@ -96,7 +96,7 @@ namespace tut10.DAL
             /* Check if such enrollment exists */
             Enrollment enrollment = null;
 
-            if (!_context.Enrollment.Any(e => e.Semester == 1 && e.IdStudyNavigation.Name.Equals(student.Studies)))
+            if (!_context.Enrollment.Include(e => e.IdStudyNavigation).Any(e => e.Semester == 1 && e.IdStudyNavigation.Name.Equals(student.Studies)))
             {
                 /* If not, create it */
                 int newId = _context.Enrollment.Max(e => e.IdEnrollment) + 1;
@@ -108,7 +108,10 @@ namespace tut10.DAL
             }
             else
             {
-                enrollment = _context.Enrollment.First(e => e.Semester == 1 && e.IdStudyNavigation.Name.Equals(student.Studies));
+                enrollment = _context
+                    .Enrollment
+                    .Include(e => e.IdStudyNavigation)
+                    .First(e => e.Semester == 1 && e.IdStudyNavigation.Name.Equals(student.Studies));
             }
 
             /* Create new student */
@@ -131,11 +134,12 @@ namespace tut10.DAL
         public Enrollment PromoteStudents(PromotionData data)
         {
             /* Check if old enrollment exists */
-            if (!_context.Enrollment.Any(e => e.Semester == Convert.ToInt32(data.Semester) && e.IdStudyNavigation.Name.Equals(data.Name)))
+            if (!_context.Enrollment.Include(e => e.IdStudyNavigation).Any(e => e.Semester == Convert.ToInt32(data.Semester) && e.IdStudyNavigation.Name.Equals(data.Name)))
                 return null;
 
             /* Get old enrollment */
             Enrollment oldEnrollment = _context.Enrollment
+                .Include(e => e.IdStudyNavigation)
                 .First(e => e.Semester == Convert.ToInt32(data.Semester) && e.IdStudyNavigation.Name.Equals(data.Name));
 
             Enrollment newEnrollment = null;
